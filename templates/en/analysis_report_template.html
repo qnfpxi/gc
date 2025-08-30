@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ stock_name }} ({{ symbol }}) Stock Analysis Report - {{ analysis_date }}</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; line-height: 1.6; }
+        .container { max-width: 900px; margin: auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        h1 { color: #2c3e50; text-align: center; margin-bottom: 25px; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px; }
+        h2 { color: #34495e; border-left: 5px solid #3498db; padding-left: 10px; margin-top: 30px; margin-bottom: 15px; }
+        p { margin-bottom: 10px; }
+        .summary { background-color: #e8f5e9; border-left: 6px solid #4CAF50; padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; font-size: 1.1em; font-weight: bold; color: #2e7d32; }
+        .factors-section { display: flex; justify-content: space-between; margin-top: 20px; flex-wrap: wrap; }
+        .factor-list { background-color: #f8f8f8; padding: 15px; border-radius: 8px; flex: 1; min-width: 280px; margin: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .factor-list h3 { margin-top: 0; color: #555; border-bottom: 1px dashed #ddd; padding-bottom: 8px; margin-bottom: 10px; }
+        .factor-list ul { list-style-type: none; padding: 0; }
+        .factor-list li { margin-bottom: 5px; padding-left: 20px; position: relative; }
+        .bullish li:before { content: '↑'; color: #4CAF50; position: absolute; left: 0; }
+        .bearish li:before { content: '↓'; color: #f44336; position: absolute; left: 0; }
+        .neutral li:before { content: '—'; color: #ff9800; position: absolute; left: 0; }
+        .detailed-analysis { background-color: #fdfdfd; border: 1px solid #eee; padding: 20px; border-radius: 8px; margin-top: 25px; }
+        .detailed-analysis p { white-space: pre-wrap; word-wrap: break-word; }
+        .footer { text-align: center; margin-top: 40px; font-size: 0.85em; color: #777; }
+        .disclaimer { font-size: 0.8em; color: #999; margin-top: 30px; padding: 15px; background-color: #f0f0f0; border-left: 4px solid #ccc; }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>{{ stock_name }} ({{ symbol }}) Stock Analysis Report</h1>
+        <p><strong>Analysis Date:</strong> {{ analysis_date }}</p>
+        <p><strong>Latest Price:</strong> {{ latest_price }} CNY</p>
+        <p><strong>Daily Change:</strong> {{ price_change_pct }}</p>
+
+        <div class="summary">
+            <p><strong>Summary:</strong> {{ summary_phrase }}</p>
+        </div>
+
+        <h2>Detailed Analysis</h2>
+        <div class="detailed-analysis">
+            {% for part in detailed_parts %}
+            <p>{{ part }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="factors-section">
+            <div class="factor-list bullish">
+                <h3>Bullish Factors</h3>
+                <ul>
+                    {% for factor in bullish_factors %}
+                    <li>{{ factor }}</li>
+                    {% endfor %}
+                    {% if not bullish_factors %}
+                    <li>No significant bullish factors.</li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="factor-list bearish">
+                <h3>Bearish Factors</h3>
+                <ul>
+                    {% for factor in bearish_factors %}
+                    <li>{{ factor }}</li>
+                    {% endfor %}
+                    {% if not bearish_factors %}
+                    <li>No significant bearish factors.</li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="factor-list neutral">
+                <h3>Neutral Factors</h3>
+                <ul>
+                    {% for factor in neutral_factors %}
+                    <li>{{ factor }}</li>
+                    {% endfor %}
+                    {% if not neutral_factors %}
+                    <li>No significant neutral factors.</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        {% if cost_analysis or chip_peak_price %}
+        <h2>Additional Analysis</h2>
+        <div class="detailed-analysis">
+            {% if cost_analysis %}
+            <h3>Cost Analysis</h3>
+            <p>Average Cost Price (Short-term/MA5): {{ cost_analysis.short_term_cost_approx|default('N/A', true) }}</p>
+            <p>Average Cost Price (Medium-term/MA20): {{ cost_analysis.medium_term_cost_approx|default('N/A', true) }}</p>
+            <p>Current Price: {{ cost_analysis.current_price|default('N/A', true) }}</p>
+            <p>Short-term Profit Status: {{ cost_analysis.short_term_profit_status|default('N/A', true) }}</p>
+            <p>Medium-term Profit Status: {{ cost_analysis.medium_term_profit_status|default('N/A', true) }}</p>
+            {% endif %}
+
+            {% if chip_peak_price %}
+            <h3>Chip Distribution</h3>
+            <p>Main Chip Peak Price: {{ chip_peak_price|default('N/A', true) }}</p>
+            <p>Main Chip Peak Ratio: {{ chip_peak_ratio|default('N/A', true) }}%</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="disclaimer">
+            <p><strong>Disclaimer:</strong> This report is for reference only and does not constitute investment advice. Investing involves risks, and caution is advised. All data is sourced from third-party data providers, and this report does not guarantee its accuracy or completeness.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; {{ analysis_date.split('-')[0] }} Stock Analysis API. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

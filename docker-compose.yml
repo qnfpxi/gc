@@ -1,0 +1,46 @@
+# docker-compose.yml - 用于编排股票分析API服务和Redis缓存
+
+version: '3.8' # Docker Compose 文件格式版本
+
+services:
+  # 股票分析API服务
+  stock-analysis-api:
+    build: . # 指示Docker Compose在当前目录查找Dockerfile来构建镜像
+    container_name: stock-analysis-api # 容器名称
+    ports:
+      - "8000:8000" # 将容器的8000端口映射到主机的8000端口
+    environment:
+      # 从宿主机的.env文件或环境变量中获取这些值
+      # Dynaconf会使用 STOCK_API_ 前缀来查找这些变量
+      - STOCK_API_TUSHARE_TOKEN=${STOCK_API_TUSHARE_TOKEN}
+      - STOCK_API_REDIS_HOST=redis # Redis服务的主机名，这里使用Docker Compose的服务名称
+      - STOCK_API_REDIS_PORT=${STOCK_API_REDIS_PORT:-6379} # 使用环境变量或默认值
+      - STOCK_API_REDIS_PASSWORD=${STOCK_API_REDIS_PASSWORD:-} # 使用环境变量或空字符串 (根据您的最新确认，密码是可选的)
+      - STOCK_API_LOG_LEVEL=${STOCK_API_LOG_LEVEL:-INFO} # 日志级别
+      - STOCK_API_PREHEAT_TOP_N_STOCKS=${STOCK_API_PREHEAT_TOP_N_STOCKS:-0} # 预热股票数量
+      # 如果有其他需要在运行时传递的配置，也可以在这里添加
+    depends_on:
+      - redis # 确保redis服务在stock-analysis-api服务之前启动
+    volumes:
+      # 挂载当前目录到容器的/app目录
+      # 这在开发时非常有用，修改代码后无需重新构建镜像即可生效
+      # 生产环境部署时，通常不需要这个，因为代码已经复制到镜像中
+      - .:/app
+    restart: unless-stopped # 容器退出时自动重启，除非手动停止
+
+  # Redis缓存服务
+  redis:
+    image: redis:7.2.5-alpine # 使用轻量级的Redis镜像
+    container_name: stock-analysis-redis # 容器名称
+    ports:
+      - "6379:6379" # 将容器的6379端口映射到主机的6379端口
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru # 启用AOF持久化，并设置内存限制 (根据您的最新确认，移除了 --requirepass)
+    volumes:
+      - redis_data:/data # 将Redis数据持久化到具名卷中
+    restart: unless-stopped # 容器退出时自动重启，除非手动停止
+
+# 定义具名卷，用于Redis数据持久化
+volumes:
+  redis_data:
+    driver: local # 使用本地驱动
+

@@ -1,0 +1,142 @@
+# config.yaml - 股票分析API的配置
+# 使用Dynaconf加载，支持多环境和环境变量覆盖
+
+# 应用程序通用参数
+app_params:
+  version: "1.0.0" # API版本
+
+  # A股市场配置
+  A:
+    ma_periods: {'short': 5, 'medium': 20} # 移动平均线周期
+    macd_params: {'fast': 12, 'slow': 26, 'signal': 9} # MACD参数
+    momentum_period: 20 # 动量指标周期
+    volatility_period: 20 # 波动率指标周期
+    rsi_period: 14 # RSI周期
+    bollinger_period: 20 # 布林带周期
+    bollinger_std: 2 # 布林带标准差倍数
+    volume_ma_periods: {'short': 5, 'medium': 20} # 成交量移动平均线周期
+    atr_period: 14 # ATR周期
+    k_pattern_window: 20 # K线形态分析窗口
+    stoch_k_period: 14 # 随机指标 %K 周期
+    stoch_d_period: 3 # 随机指标 %D 周期
+    cache_ttl: 43200 # 历史K线数据缓存TTL (秒), 12小时
+    result_cache_ttl: 14400 # 分析结果缓存TTL (秒), 4小时
+    data_days: 60 # 默认历史数据天数
+    batch_size: 10 # Tushare/Akshare API调用的固定批次大小
+    batch_pause_time: 0.5 # 批次间暂停时间 (秒)
+    max_stocks_for_preheat: 5000 # 预热时最大股票数量，0为禁用
+    name_map_cache_ttl: 86400 # 股票名称映射缓存TTL (秒), 1天
+    fina_indicator_cache_ttl: 15552000 # 财务指标缓存TTL (秒), 180天 (约6个月)
+    moneyflow_dc_cache_ttl: 86400 # 个股资金流向(DC)缓存TTL (秒), 1天
+    moneyflow_ind_ths_cache_ttl: 21600 # 行业资金流向(THS)缓存TTL (秒), 6小时
+    stk_factor_pro_cache_ttl: 172800 # 股票技术因子缓存TTL (秒), 2天
+    limit_list_d_cache_ttl: 172800 # 每日涨跌停统计缓存TTL (秒), 2天
+    stk_limit_cache_ttl: 172800 # 每日涨跌停价格缓存TTL (秒), 2天
+    ak_spot_on_demand_ttl: 60 # Akshare实时行情按需缓存TTL (秒), 1分钟
+    top_inst_cache_ttl: 86400 # 龙虎榜机构成交明细缓存TTL (秒), 1天
+    hm_list_cache_ttl: 2592000 # 游资名录缓存TTL (秒), 30天
+    ths_member_cache_ttl: 604800 # THS概念成分股缓存TTL (秒), 7天
+    ths_hot_cache_ttl: 86400 # THS热点榜缓存TTL (秒), 1天
+    cyq_chips_cache_ttl: 86400 # 每日筹码分布缓存TTL (秒), 1天
+
+  # 港股市场配置 (示例，可根据实际需求调整)
+  HK:
+    data_days: 180
+    cache_ttl: 14400 # 4小时
+
+  # 美股市场配置 (示例，可根据实际需求调整)
+  US:
+    data_days: 180
+    cache_ttl: 14400 # 4小时
+
+  # 日股市场配置 (示例，可根据实际需求调整)
+  JP:
+    data_days: 180
+    cache_ttl: 14400 # 4小时
+
+  # 印股市场配置 (示例，可根据实际需求调整)
+  IN:
+    data_days: 180
+    cache_ttl: 14400 # 4小时
+
+  # 加密货币市场配置 (示例，可根据实际需求调整)
+  CRYPTO:
+    ma_periods: {'short': 3, 'medium': 10}
+    data_days: 180
+    cache_ttl: 3600 # 1小时
+
+  # ETF市场配置 (示例，可根据实际需求调整)
+  ETF:
+    data_days: 180
+    cache_ttl: 14400 # 4小时
+
+  # LOF市场配置 (示例，可根据实际需求调整)
+  LOF:
+    data_days: 180
+    cache_ttl: 14400 # 4小时
+
+# 总结短语生成规则
+# 规则按优先级从低到高排序 (priority值越小优先级越高)
+# 条件使用Python表达式，可以使用full_analysis_results中的键作为变量
+summary_rules:
+  - condition: "limit_status == 'LIMIT_UP'"
+    summary_phrase: "该股票今日涨停，市场情绪高涨，短期趋势良好。"
+    priority: 1
+  - condition: "limit_status == 'LIMIT_DOWN'"
+    summary_phrase: "该股票今日跌停，存在较大下行风险，建议规避。"
+    priority: 1
+  - condition: "latest_price is not None and MA_medium is not None and latest_price > MA_medium * 1.05 and MACD_Hist is not None and MACD_Hist > 0.1"
+    summary_phrase: "股价站稳中长期均线，MACD柱线为正，显示看涨倾向，可关注。"
+    priority: 2
+  - condition: "latest_price is not None and MA_medium is not None and latest_price < MA_medium * 0.95 and MACD_Hist is not None and MACD_Hist < -0.1"
+    summary_phrase: "股价跌破中长期均线，MACD柱线为负，短期承压，需警惕风险。"
+    priority: 2
+  - condition: "main_net_amount_dc is not None and main_net_amount_dc > 5000"
+    summary_phrase: "主力资金大额流入，表明有机构看好，值得留意。"
+    priority: 3
+  - condition: "main_net_amount_dc is not None and main_net_amount_dc < -5000"
+    summary_phrase: "主力资金大额流出，短期抛压较大，谨慎观望。"
+    priority: 3
+  - condition: "revenue_yoy is not None and revenue_yoy > 20 and np_yoy is not None and np_yoy > 20"
+    summary_phrase: "公司营收和净利润均实现高速增长，基本面强劲，具备长期投资价值。"
+    priority: 4
+  - condition: "PB_ratio is not None and PB_ratio < 1.2"
+    summary_phrase: "PB估值较低，可能存在被低估的情况，可适当关注。"
+    priority: 5
+  - condition: "True" # 默认规则，优先级最低，作为兜底
+    summary_phrase: "当前市场情况复杂，建议中性观望，等待更明确信号。"
+    priority: 999
+
+# 分析模块配置
+# enabled: 是否启用该模块
+# priority: 模块执行优先级 (数字越小优先级越高)
+# dependencies: 该模块依赖的其他模块名称列表，确保依赖模块先执行
+analysis_modules:
+  TechnicalAnalyzer:
+    enabled: true
+    priority: 1
+    dependencies: []
+  FundamentalAnalyzer:
+    enabled: true
+    priority: 2
+    dependencies: ["TechnicalAnalyzer"] # 基本面分析可能需要技术面提供的最新价格等信息
+  MarketSentimentAnalyzer:
+    enabled: true
+    priority: 3
+    dependencies: [] # 市场情绪模块通常独立，但可以依赖其他模块
+  IndustryConceptAnalyzer:
+    enabled: true
+    priority: 4
+    dependencies: [] # 行业概念分析通常独立
+  CostAnalyzer:
+    enabled: true
+    priority: 5
+    dependencies: ["TechnicalAnalyzer", "MarketSentimentAnalyzer"] # 成本分析可能需要技术指标和市场情绪数据
+
+# 模板设置
+template_settings:
+  template_dir: "templates" # 模板文件存放的根目录
+  default_template: "analysis_report_template.html" # 默认模板文件名
+  languages: # 支持的语言及其对应的子目录
+    zh: "zh"
+    en: "en"

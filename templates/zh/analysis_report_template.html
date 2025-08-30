@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ stock_name }} ({{ symbol }}) 股票分析报告 - {{ analysis_date }}</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; line-height: 1.6; }
+        .container { max-width: 900px; margin: auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        h1 { color: #2c3e50; text-align: center; margin-bottom: 25px; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px; }
+        h2 { color: #34495e; border-left: 5px solid #3498db; padding-left: 10px; margin-top: 30px; margin-bottom: 15px; }
+        p { margin-bottom: 10px; }
+        .summary { background-color: #e8f5e9; border-left: 6px solid #4CAF50; padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; font-size: 1.1em; font-weight: bold; color: #2e7d32; }
+        .factors-section { display: flex; justify-content: space-between; margin-top: 20px; flex-wrap: wrap; }
+        .factor-list { background-color: #f8f8f8; padding: 15px; border-radius: 8px; flex: 1; min-width: 280px; margin: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .factor-list h3 { margin-top: 0; color: #555; border-bottom: 1px dashed #ddd; padding-bottom: 8px; margin-bottom: 10px; }
+        .factor-list ul { list-style-type: none; padding: 0; }
+        .factor-list li { margin-bottom: 5px; padding-left: 20px; position: relative; }
+        .bullish li:before { content: '↑'; color: #4CAF50; position: absolute; left: 0; }
+        .bearish li:before { content: '↓'; color: #f44336; position: absolute; left: 0; }
+        .neutral li:before { content: '—'; color: #ff9800; position: absolute; left: 0; }
+        .detailed-analysis { background-color: #fdfdfd; border: 1px solid #eee; padding: 20px; border-radius: 8px; margin-top: 25px; }
+        .detailed-analysis p { white-space: pre-wrap; word-wrap: break-word; }
+        .footer { text-align: center; margin-top: 40px; font-size: 0.85em; color: #777; }
+        .disclaimer { font-size: 0.8em; color: #999; margin-top: 30px; padding: 15px; background-color: #f0f0f0; border-left: 4px solid #ccc; }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>{{ stock_name }} ({{ symbol }}) 股票分析报告</h1>
+        <p><strong>分析日期:</strong> {{ analysis_date }}</p>
+        <p><strong>最新价:</strong> {{ latest_price }} 元</p>
+        <p><strong>日涨跌幅:</strong> {{ price_change_pct }}</p>
+
+        <div class="summary">
+            <p><strong>总结:</strong> {{ summary_phrase }}</p>
+        </div>
+
+        <h2>详细分析</h2>
+        <div class="detailed-analysis">
+            {% for part in detailed_parts %}
+            <p>{{ part }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="factors-section">
+            <div class="factor-list bullish">
+                <h3>看涨因素</h3>
+                <ul>
+                    {% for factor in bullish_factors %}
+                    <li>{{ factor }}</li>
+                    {% endfor %}
+                    {% if not bullish_factors %}
+                    <li>暂无明显看涨因素。</li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="factor-list bearish">
+                <h3>看跌因素</h3>
+                <ul>
+                    {% for factor in bearish_factors %}
+                    <li>{{ factor }}</li>
+                    {% endfor %}
+                    {% if not bearish_factors %}
+                    <li>暂无明显看跌因素。</li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="factor-list neutral">
+                <h3>中性因素</h3>
+                <ul>
+                    {% for factor in neutral_factors %}
+                    <li>{{ factor }}</li>
+                    {% endfor %}
+                    {% if not neutral_factors %}
+                    <li>暂无明显中性因素。</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        {% if cost_analysis or chip_peak_price %}
+        <h2>补充分析</h2>
+        <div class="detailed-analysis">
+            {% if cost_analysis %}
+            <h3>成本分析</h3>
+            <p>平均成本：{{ cost_analysis.short_term_cost_approx|default('N/A', true) }} (短期)</p>
+            <p>平均成本：{{ cost_analysis.medium_term_cost_approx|default('N/A', true) }} (中期)</p>
+            <p>当前价格：{{ cost_analysis.current_price|default('N/A', true) }}</p>
+            <p>短期获利状态：{{ cost_analysis.short_term_profit_status|default('N/A', true) }}</p>
+            <p>中期获利状态：{{ cost_analysis.medium_term_profit_status|default('N/A', true) }}</p>
+            {% endif %}
+
+            {% if chip_peak_price %}
+            <h3>筹码分布</h3>
+            <p>主要筹码峰价格：{{ chip_peak_price|default('N/A', true) }}</p>
+            <p>主要筹码峰占比：{{ chip_peak_ratio|default('N/A', true) }}%</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="disclaimer">
+            <p><strong>免责声明:</strong> 本报告仅供参考，不构成任何投资建议。投资有风险，入市需谨慎。所有数据来源于第三方数据源，本报告不保证其准确性和完整性。</p>
+        </div>
+        <div class="footer">
+            <p>&copy; {{ analysis_date.split('-')[0] }} 股票分析API. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>
