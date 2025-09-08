@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini App 本地功能测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #1890ff;
+        }
+        .status {
+            color: #52c41a;
+            font-weight: bold;
+        }
+        .pending {
+            color: #faad14;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #40a9ff;
+        }
+        button.secondary {
+            background: #fff;
+            color: #1890ff;
+            border: 1px solid #1890ff;
+        }
+        .test-result {
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: none;
+        }
+        .test-success {
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            color: #52c41a;
+        }
+        .test-error {
+            background: #fff2f0;
+            border: 1px solid #ffccc7;
+            color: #ff4d4f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Mini App 本地功能测试</h1>
+
+        <!-- 测试环境状态 -->
+        <div class="card">
+            <h2>📊 测试环境状态</h2>
+            <p><strong>时间:</strong> <span id="current-time"></span></p>
+            <p><strong>URL:</strong> <span id="current-url"></span></p>
+            <p><strong>API服务器:</strong> http://localhost:8000</p>
+            <p><strong>状态:</strong> <span class="status">✅ 正常运行</span></p>
+            
+            <button onclick="testAPIConnection()">测试API连接</button>
+            <button onclick="showEditForm()">显示编辑表单</button>
+            
+            <div id="api-test-result" class="test-result"></div>
+        </div>
+
+        <!-- 当前数据展示 -->
+        <div class="card">
+            <h2>📋 当前商家数据</h2>
+            <div id="merchant-data">
+                <p><strong>店铺名称:</strong> <span id="merchant-name">测试咖啡店（三里屯总店）</span></p>
+                <p><strong>描述:</strong> <span id="merchant-description">精品咖啡，手工制作，欢迎品尝。</span></p>
+                <p><strong>地区:</strong> <span id="merchant-region">上海市</span></p>
+                <p><strong>地址:</strong> <span id="merchant-address">朝阳区三里屯路19号</span></p>
+                <p><strong>联系电话:</strong> <span id="merchant-phone">13800138000</span></p>
+                <p><strong>Telegram:</strong> <span id="merchant-telegram">@test_coffee_shop</span></p>
+                <p><strong>订阅等级:</strong> <span id="merchant-tier">免费版</span></p>
+            </div>
+        </div>
+
+        <!-- 编辑表单 -->
+        <div class="card" id="edit-form" style="display: none;">
+            <h2>✏️ 编辑商家信息</h2>
+            <form id="merchant-form">
+                <div class="form-group">
+                    <label for="edit-name">店铺名称 *</label>
+                    <input type="text" id="edit-name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-description">店铺描述</label>
+                    <textarea id="edit-description" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-region">所在地区 *</label>
+                    <select id="edit-region" required>
+                        <option value="">请选择地区</option>
+                        <option value="1">北京市</option>
+                        <option value="7">上海市</option>
+                        <option value="12">广州市</option>
+                        <option value="4">深圳市</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-address">详细地址</label>
+                    <input type="text" id="edit-address">
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-phone">联系电话</label>
+                    <input type="tel" id="edit-phone">
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-telegram">Telegram用户名</label>
+                    <input type="text" id="edit-telegram" placeholder="@username">
+                </div>
+                
+                <button type="submit">💾 保存修改</button>
+                <button type="button" class="secondary" onclick="cancelEdit()">❌ 取消</button>
+                
+                <div id="form-result" class="test-result"></div>
+            </form>
+        </div>
+
+        <!-- 测试验证 -->
+        <div class="card">
+            <h2>🎯 测试验证项目</h2>
+            <div id="test-checklist">
+                <p>✅ <strong>页面加载:</strong> 成功</p>
+                <p>✅ <strong>数据渲染:</strong> 成功</p>
+                <p><span class="pending">🔄</span> <strong>API连接:</strong> 待测试</p>
+                <p><span class="pending">🔄</span> <strong>表单编辑:</strong> 待测试</p>
+                <p><span class="pending">🔄</span> <strong>数据验证:</strong> 待测试</p>
+                <p><span class="pending">🔄</span> <strong>保存功能:</strong> 待测试</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 更新时间和URL
+        document.getElementById('current-time').textContent = new Date().toLocaleString();
+        document.getElementById('current-url').textContent = window.location.href;
+
+        // 模拟商家数据
+        const merchantData = {
+            name: "测试咖啡店（三里屯总店）",
+            description: "精品咖啡，手工制作，欢迎品尝。",
+            region: "7",
+            regionName: "上海市",
+            address: "朝阳区三里屯路19号",
+            phone: "13800138000",
+            telegram: "@test_coffee_shop",
+            tier: "免费版"
+        };
+
+        // 测试API连接
+        async function testAPIConnection() {
+            const resultDiv = document.getElementById('api-test-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'test-result';
+            resultDiv.textContent = '🔄 正在测试API连接...';
+            
+            try {
+                const response = await fetch('http://localhost:8000/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.className = 'test-result test-success';
+                    resultDiv.textContent = '✅ API连接成功: ' + data.message;
+                    updateChecklist('API连接', '✅');
+                } else {
+                    throw new Error('HTTP ' + response.status);
+                }
+            } catch (error) {
+                resultDiv.className = 'test-result test-error';
+                resultDiv.textContent = '❌ API连接失败: ' + error.message;
+                
+                // 使用离线模式
+                setTimeout(() => {
+                    resultDiv.className = 'test-result test-success';
+                    resultDiv.textContent = '⚠️ 切换到离线测试模式';
+                }, 2000);
+            }
+        }
+
+        // 显示编辑表单
+        function showEditForm() {
+            document.getElementById('edit-form').style.display = 'block';
+            
+            // 填充当前数据
+            document.getElementById('edit-name').value = merchantData.name;
+            document.getElementById('edit-description').value = merchantData.description;
+            document.getElementById('edit-region').value = merchantData.region;
+            document.getElementById('edit-address').value = merchantData.address;
+            document.getElementById('edit-phone').value = merchantData.phone;
+            document.getElementById('edit-telegram').value = merchantData.telegram;
+            
+            updateChecklist('表单编辑', '✅');
+            
+            // 滚动到表单
+            document.getElementById('edit-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 取消编辑
+        function cancelEdit() {
+            document.getElementById('edit-form').style.display = 'none';
+        }
+
+        // 表单提交处理
+        document.getElementById('merchant-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const resultDiv = document.getElementById('form-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'test-result';
+            resultDiv.textContent = '🔄 正在保存...';
+            
+            // 模拟保存延迟
+            setTimeout(() => {
+                // 获取表单数据
+                const formData = {
+                    name: document.getElementById('edit-name').value,
+                    description: document.getElementById('edit-description').value,
+                    region: document.getElementById('edit-region').value,
+                    address: document.getElementById('edit-address').value,
+                    phone: document.getElementById('edit-phone').value,
+                    telegram: document.getElementById('edit-telegram').value
+                };
+                
+                // 验证数据
+                if (!formData.name.trim()) {
+                    resultDiv.className = 'test-result test-error';
+                    resultDiv.textContent = '❌ 店铺名称不能为空';
+                    return;
+                }
+                
+                if (!formData.region) {
+                    resultDiv.className = 'test-result test-error';
+                    resultDiv.textContent = '❌ 请选择所在地区';
+                    return;
+                }
+                
+                // 更新显示数据
+                merchantData.name = formData.name;
+                merchantData.description = formData.description;
+                merchantData.region = formData.region;
+                merchantData.address = formData.address;
+                merchantData.phone = formData.phone;
+                merchantData.telegram = formData.telegram;
+                
+                updateMerchantDisplay();
+                
+                resultDiv.className = 'test-result test-success';
+                resultDiv.textContent = '✅ 保存成功！数据已更新。';
+                
+                updateChecklist('数据验证', '✅');
+                updateChecklist('保存功能', '✅');
+                
+                // 3秒后隐藏表单
+                setTimeout(() => {
+                    document.getElementById('edit-form').style.display = 'none';
+                }, 2000);
+                
+            }, 1000);
+        });
+
+        // 更新商家数据显示
+        function updateMerchantDisplay() {
+            document.getElementById('merchant-name').textContent = merchantData.name;
+            document.getElementById('merchant-description').textContent = merchantData.description;
+            
+            const regionNames = {'1': '北京市', '7': '上海市', '12': '广州市', '4': '深圳市'};
+            document.getElementById('merchant-region').textContent = regionNames[merchantData.region] || '未知';
+            
+            document.getElementById('merchant-address').textContent = merchantData.address;
+            document.getElementById('merchant-phone').textContent = merchantData.phone;
+            document.getElementById('merchant-telegram').textContent = merchantData.telegram;
+        }
+
+        // 更新检查列表
+        function updateChecklist(item, status) {
+            const checklist = document.getElementById('test-checklist');
+            const items = checklist.querySelectorAll('p');
+            
+            items.forEach(p => {
+                if (p.textContent.includes(item)) {
+                    const statusSpan = p.querySelector('span') || p.querySelector('strong').previousSibling;
+                    if (statusSpan && statusSpan.textContent) {
+                        statusSpan.textContent = status + ' ';
+                    } else {
+                        p.innerHTML = p.innerHTML.replace(/🔄|✅|❌/, status);
+                    }
+                }
+            });
+        }
+
+        // 页面加载完成提示
+        window.addEventListener('load', function() {
+            console.log('✅ Mini App 本地测试页面加载完成');
+            console.log('📊 当前商家数据:', merchantData);
+        });
+    </script>
+</body>
+</html>

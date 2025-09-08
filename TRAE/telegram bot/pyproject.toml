@@ -1,0 +1,183 @@
+[tool.poetry]
+name = "telegram-bot-platform"
+version = "1.0.0"
+description = "基于 Python + FastAPI + Vue.js 3 的 Telegram Bot 和 Mini App 综合平台"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+# Web 框架
+fastapi = "^0.104.1"
+uvicorn = {extras = ["standard"], version = "^0.24.0"}
+
+# Telegram Bot
+aiogram = "^3.2.0"
+
+# 数据库
+sqlalchemy = "^2.0.23"
+asyncpg = "^0.29.0"  # PostgreSQL 异步驱动
+alembic = "^1.12.1"  # 数据库迁移
+geoalchemy2 = "^0.14.2"  # PostGIS 支持
+
+# Redis 和缓存
+redis = "^5.0.1"
+aioredis = "^2.0.1"
+
+# 异步任务队列
+celery = "^5.3.4"
+
+# 认证和安全
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+python-multipart = "^0.0.6"  # 文件上传支持
+
+# 数据验证和序列化
+pydantic = "^2.5.0"
+pydantic-settings = "^2.1.0"
+
+# HTTP 客户端
+httpx = "^0.25.2"
+aiohttp = "^3.9.1"
+
+# 工具库
+python-dotenv = "^1.0.0"  # 环境变量
+structlog = "^23.2.0"     # 结构化日志
+rich = "^13.7.0"          # 美化输出
+typer = "^0.9.0"          # CLI 工具
+
+# 时间处理
+python-dateutil = "^2.8.2"
+pytz = "^2023.3"
+
+# 图像处理
+pillow = "^10.1.0"
+
+# AI 服务（Phase 2）
+openai = "^1.3.7"
+# google-generativeai = "^0.3.2"  # 取消注释以启用 Google AI
+
+# 地理位置处理
+geopy = "^2.4.0"
+shapely = "^2.0.2"
+
+[tool.poetry.group.dev.dependencies]
+# 测试框架
+pytest = "^7.4.3"
+pytest-asyncio = "^0.21.1"
+pytest-cov = "^4.1.0"
+httpx = "^0.25.2"  # 用于测试 API
+
+# 代码质量
+black = "^23.11.0"        # 代码格式化
+isort = "^5.12.0"         # import 排序
+flake8 = "^6.1.0"         # 代码检查
+mypy = "^1.7.1"           # 类型检查
+bandit = "^1.7.5"         # 安全检查
+
+# 开发工具
+pre-commit = "^3.6.0"     # Git hooks
+watchfiles = "^0.21.0"    # 文件监控
+
+# 调试工具
+ipython = "^8.17.2"
+debugpy = "^1.8.0"
+
+# 性能分析
+py-spy = "^0.3.14"
+
+[tool.poetry.group.monitoring.dependencies]
+# 监控和错误追踪（Phase 5）
+sentry-sdk = {extras = ["fastapi"], version = "^1.38.0"}
+prometheus-client = "^0.19.0"
+prometheus-fastapi-instrumentator = "^6.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# ==================================
+# 工具配置
+# ==================================
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  migrations
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+line_length = 88
+src_paths = ["app", "tests"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "aiogram.*",
+    "celery.*",
+    "redis.*",
+    "alembic.*",
+    "geoalchemy2.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "*/tests/*",
+    "*/migrations/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

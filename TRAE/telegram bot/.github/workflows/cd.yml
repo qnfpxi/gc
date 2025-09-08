@@ -1,0 +1,36 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    # 确保 CI 任务成功后才执行部署
+    needs: test-and-lint
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            # 进入项目目录
+            cd /home/${{ secrets.DEPLOY_USER }}/telegram-bot-platform
+            
+            # 从 main 分支拉取最新代码
+            git pull origin main
+            
+            # 使用 Docker Compose 重启服务
+            # --build 会重新构建镜像
+            # -d 会在后台运行
+            # --remove-orphans 会移除不再使用的旧服务容器
+            docker-compose down
+            docker-compose up --build -d --remove-orphans
+            
+            # 显示运行的服务
+            docker-compose ps

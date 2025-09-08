@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini App 基础测试</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f2f5;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .status {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .success { color: #52c41a; }
+        .warning { color: #faad14; }
+        button {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Mini App 基础测试</h1>
+        
+        <div id="status" class="status">正在检测...</div>
+        
+        <div id="info">
+            <p><strong>时间:</strong> <span id="time"></span></p>
+            <p><strong>URL:</strong> <span id="url"></span></p>
+            <p><strong>Telegram:</strong> <span id="telegram"></span></p>
+        </div>
+        
+        <button onclick="testFunction()">测试功能</button>
+        <button onclick="closeApp()">关闭应用</button>
+        
+        <p style="margin-top: 20px; color: #666; font-size: 14px;">
+            如果你看到这个页面，说明 Mini App 基本功能正常！
+        </p>
+    </div>
+
+    <script>
+        // 更新时间和URL
+        document.getElementById('time').textContent = new Date().toLocaleString();
+        document.getElementById('url').textContent = window.location.href;
+        
+        // 检测 Telegram WebApp 环境
+        let isInTelegram = false;
+        
+        if (window.Telegram && window.Telegram.WebApp) {
+            isInTelegram = true;
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
+            
+            document.getElementById('status').textContent = '✅ Telegram WebApp 环境检测成功';
+            document.getElementById('status').className = 'status success';
+            document.getElementById('telegram').textContent = '是';
+        } else {
+            document.getElementById('status').textContent = '⚠️ 非 Telegram 环境 - 浏览器模式';
+            document.getElementById('status').className = 'status warning';
+            document.getElementById('telegram').textContent = '否';
+        }
+        
+        function testFunction() {
+            if (isInTelegram) {
+                Telegram.WebApp.showAlert('✅ Mini App 功能测试成功！');
+            } else {
+                alert('✅ 基础功能测试成功！');
+            }
+        }
+        
+        function closeApp() {
+            if (isInTelegram) {
+                Telegram.WebApp.close();
+            } else {
+                alert('演示模式 - 关闭功能');
+            }
+        }
+        
+        // 错误处理
+        window.onerror = function(msg, url, line, col, error) {
+            console.error('错误:', msg, '在', url, '行', line);
+            document.getElementById('status').textContent = '❌ 发生错误: ' + msg;
+            document.getElementById('status').className = 'status warning';
+        };
+    </script>
+</body>
+</html>
