@@ -29,7 +29,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: telegram-bot-redis
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    # 移除 --requirepass 参数，因为我们没有在.env中设置密码
+    command: redis-server --appendonly yes
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:

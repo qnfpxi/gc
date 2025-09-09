@@ -20,7 +20,8 @@ from app.schemas.merchant import (
     MerchantSearchResponse,
     SubscriptionUpgrade
 )
-from app.core.security import get_current_user
+# 从正确的模块导入 get_current_user
+from app.api.deps import get_current_user
 from app.models.user import User
 
 router = APIRouter(prefix="/merchants", tags=["merchants"])

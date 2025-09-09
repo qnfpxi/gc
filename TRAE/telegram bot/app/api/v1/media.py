@@ -13,8 +13,7 @@ from app.core.logging import get_logger
 from app.models.user import User
 from app.schemas.media import MediaUploadResponse, MediaUploadResult
 from app.services.storage.base import StorageInterface
-from app.services.user_service import get_current_user
-from app.api.deps import get_storage_service_dependency
+from app.api.deps import get_current_user, get_storage_service_dependency
 
 logger = get_logger(__name__)
 router = APIRouter()

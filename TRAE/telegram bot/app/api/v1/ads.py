@@ -11,7 +11,7 @@ from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.exceptions import AdNotFoundError, UnauthorizedError
+from app.core.exceptions import AdNotFoundError, PermissionDeniedError
 from app.core.logging import get_logger
 from app.models.user import User
 from app.schemas.ad import (
@@ -23,7 +23,7 @@ from app.schemas.ad import (
     NearbyAdsParams
 )
 from app.services.ad_service import AdService
-from app.services.user_service import get_current_user
+from app.api.deps import get_current_user
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -150,7 +150,7 @@ async def get_ad(
         
     except AdNotFoundError:
         raise HTTPException(status_code=404, detail="Ad not found")
-    except UnauthorizedError:
+    except PermissionDeniedError:
         raise HTTPException(status_code=403, detail="Access denied")
     except Exception as e:
         logger.error("Error fetching ad", error=str(e), ad_id=ad_id)
@@ -179,7 +179,7 @@ async def update_ad(
         
     except AdNotFoundError:
         raise HTTPException(status_code=404, detail="Ad not found")
-    except UnauthorizedError:
+    except PermissionDeniedError:
         raise HTTPException(status_code=403, detail="Access denied")
     except ValueError as e:
         logger.warning("Invalid update data", error=str(e), ad_id=ad_id)
@@ -199,7 +199,6 @@ async def delete_ad(
     删除广告
     
     - 只有广告主可以删除
-    - 软删除或硬删除根据业务需求
     """
     try:
         ad_service = AdService(db)
@@ -209,7 +208,7 @@ async def delete_ad(
         
     except AdNotFoundError:
         raise HTTPException(status_code=404, detail="Ad not found")
-    except UnauthorizedError:
+    except PermissionDeniedError:
         raise HTTPException(status_code=403, detail="Access denied")
     except Exception as e:
         logger.error("Error deleting ad", error=str(e), ad_id=ad_id)
@@ -281,6 +280,43 @@ async def update_ad_status(
     except Exception as e:
         logger.error("Error updating ad status", error=str(e), ad_id=ad_id)
         raise HTTPException(status_code=500, detail="Failed to update ad status")
+
+
+@router.post("/{ad_id}/moderate", response_model=AdRead)
+async def moderate_ad(
+    ad_id: int,
+    action: str = Form(..., description="审核操作: approve, reject, request_changes"),
+    reason: Optional[str] = Form(None, description="拒绝或要求修改的原因"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    审核广告
+    
+    - 只有管理员可以审核
+    - 支持通过、拒绝、要求修改三种操作
+    """
+    try:
+        # 检查用户权限
+        if not current_user.is_staff:
+            raise PermissionDeniedError("Only staff can moderate ads")
+        
+        ad_service = AdService(db)
+        ad = await ad_service.moderate_ad(ad_id, action, reason, current_user.id)
+        
+        logger.info("Ad moderated", ad_id=ad_id, action=action, moderator_id=current_user.id)
+        return ad
+        
+    except AdNotFoundError:
+        raise HTTPException(status_code=404, detail="Ad not found")
+    except PermissionDeniedError:
+        raise HTTPException(status_code=403, detail="Access denied")
+    except ValueError as e:
+        logger.warning("Invalid moderation action", error=str(e), ad_id=ad_id)
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("Error moderating ad", error=str(e), ad_id=ad_id)
+        raise HTTPException(status_code=500, detail="Failed to moderate ad")
 
 
 @router.get("/nearby/search", response_model=List[AdRead])

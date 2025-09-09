@@ -10,6 +10,7 @@ from sqlalchemy.sql import func
 from geoalchemy2 import Geometry
 from typing import Optional, Dict, Any
 from datetime import datetime
+from pydantic import BaseModel, Field
 
 from app.core.database import Base
 

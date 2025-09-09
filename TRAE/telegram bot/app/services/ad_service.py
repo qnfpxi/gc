@@ -12,7 +12,7 @@ from sqlalchemy import select, update, delete, and_, or_, func, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.exceptions import AdNotFoundError, UnauthorizedError
+from app.core.exceptions import AdNotFoundError, PermissionDeniedError
 from app.core.logging import get_logger
 from app.models.ad import Ad
 from app.models.user import User
@@ -100,7 +100,7 @@ class AdService:
         
         # 如果是私有广告，检查权限
         if ad.status == "draft" and ad.user_id != user_id:
-            raise UnauthorizedError("Cannot access this ad")
+            raise PermissionDeniedError("Cannot access this ad")
         
         # 增加浏览次数（如果不是广告主本人）
         if user_id and user_id != ad.user_id:
@@ -119,7 +119,7 @@ class AdService:
         
         # 检查权限
         if ad.user_id != user_id:
-            raise UnauthorizedError("Cannot modify this ad")
+            raise PermissionDeniedError("Cannot modify this ad")
         
         # 更新字段
         update_data = ad_data.model_dump(exclude_unset=True)
@@ -157,7 +157,7 @@ class AdService:
         
         # 检查权限
         if ad.user_id != user_id:
-            raise UnauthorizedError("Cannot delete this ad")
+            raise PermissionDeniedError("Cannot delete this ad")
         
         await self.db.execute(delete(Ad).where(Ad.id == ad_id))
         await self.db.commit()
@@ -316,7 +316,7 @@ class AdService:
         
         # 检查权限
         if ad.user_id != user_id:
-            raise UnauthorizedError("Cannot modify this ad")
+            raise PermissionDeniedError("Cannot modify this ad")
         
         await self.db.execute(
             update(Ad)
