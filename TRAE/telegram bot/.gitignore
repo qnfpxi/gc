@@ -207,3 +207,40 @@ media/
 static/
 .pytest_cache/
 htmlcov/
+
+# Additional ignore patterns to clean up the repository
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Log files
+logs/
+*.log
+
+# Package files
+*.pkg
+
+# Node modules (should be installed via package.json)
+node_modules/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.code-workspace
+
+# System and user specific files (should never be committed)
+../.claude*
+../.codeium*
+../.ssh/
+../.zsh*
+../.vim*
+../.local/
+../.docker/
+../Desktop/
+../Documents/
+../Library/
+../Movies/
+../Music/
+../Pictures/
+../Public/
